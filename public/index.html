@@ -1036,7 +1036,9 @@
                 of: "de",
                 exportList: "Descargar lista",
                 exportTitle: "Lista de SORULLO",
-                unclaimed: "Sin reclamar"
+                unclaimed: "Sin reclamar",
+                networkError: "Error de conexión. Intenta de nuevo.",
+                eventNotFound: "Evento no encontrado"
             },
             en: {
                 heroDescription: "Organize your party, cookout, or hangout without the hassle of coordinating who brings what. Create your event, share the link, and let everyone pick their item.",
@@ -1089,13 +1091,31 @@
                 of: "of",
                 exportList: "Download list",
                 exportTitle: "SORULLO List",
-                unclaimed: "Unclaimed"
+                unclaimed: "Unclaimed",
+                networkError: "Connection error. Please try again.",
+                eventNotFound: "Event not found"
             }
         };
 
         let currentLang = 'es';
         let currentEvent = null;
+        let currentHostKey = null;
         let items = [];
+
+        // ===================
+        // API HELPER
+        // ===================
+        async function api(method, path, body) {
+            const opts = {
+                method,
+                headers: { 'Content-Type': 'application/json' }
+            };
+            if (body) opts.body = JSON.stringify(body);
+            const res = await fetch(path, opts);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Request failed');
+            return data;
+        }
 
         // ===================
         // LANGUAGE
@@ -1139,8 +1159,9 @@
 
         function goHome() {
             currentEvent = null;
+            currentHostKey = null;
             items = [];
-            window.history.pushState({}, '', window.location.pathname);
+            window.history.pushState({}, '', '/');
             showView('home-view');
         }
 
@@ -1149,18 +1170,18 @@
         // ===================
         function addItem() {
             const nameInput = document.getElementById('new-item-name');
-            
+
             const name = nameInput.value.trim();
             if (!name) return;
-            
+
             items.push({
-                id: generateId(),
+                id: Math.random().toString(36).substring(2, 10),
                 name: name,
                 claimants: []
             });
-            
+
             nameInput.value = '';
-            
+
             renderItemsList();
             notify(t('itemAdded'), 'success');
         }
@@ -1188,52 +1209,36 @@
         // ===================
         // EVENT CREATION
         // ===================
-        function submitEvent() {
+        async function submitEvent() {
             const name = document.getElementById('event-name').value.trim();
             const date = document.getElementById('event-date').value;
             const time = document.getElementById('event-time').value;
             const place = document.getElementById('event-place').value.trim();
             const pin = document.getElementById('event-pin').value.trim();
             const description = document.getElementById('event-description').value.trim();
-            
+
             if (!name || !date || !time || !place) {
                 notify(t('enterItemName'));
                 return;
             }
-            
-            const eventId = generateId();
-            const hostKey = generateId();
-            
-            currentEvent = {
-                id: eventId,
-                hostKey: hostKey,
-                name: name,
-                date: date,
-                time: time,
-                place: place,
-                pin: pin,
-                description: description,
-                items: [...items],
-                customItems: []
-            };
-            
-            saveEvent(currentEvent);
-            
-            // Show host view with share links
-            loadHostView(currentEvent);
-            notify(t('eventCreated'), 'success');
-        }
 
-        // ===================
-        // EVENT STORAGE (localStorage)
-        // ===================
-        function saveEvent(event) {
-            localStorage.setItem(`sorullo_event_${event.id}`, JSON.stringify(event));
-        }
+            try {
+                const result = await api('POST', '/api/events', {
+                    name, date, time, place, pin, description,
+                    items: items.map(i => ({ name: i.name }))
+                });
 
-        function loadEvent(eventId) {
-            const data = localStorage.getItem(`sorullo_event_${eventId}`);
-            return data ? JSON.parse(data) : null;
+                currentHostKey = result.hostKey;
+
+                // Fetch the full event back using host key
+                const event = await api('GET', `/api/events/${result.id}?hostKey=${result.hostKey}`);
+                currentEvent = event;
+
+                loadHostView(event);
+                notify(t('eventCreated'), 'success');
+            } catch (e) {
+                notify(t('networkError'));
+            }
         }
 
         // ===================
@@ -1241,11 +1246,11 @@
         // ===================
         function loadEventView(event) {
             currentEvent = event;
-            
+
             document.getElementById('view-event-name').textContent = event.name;
             document.getElementById('view-event-date').textContent = formatDate(event.date);
             document.getElementById('view-event-time').textContent = formatTime(event.time);
-            
+
             // Show place with optional pin link
             const placeEl = document.getElementById('view-event-place');
             if (event.pin) {
@@ -1253,10 +1258,10 @@
             } else {
                 placeEl.textContent = event.place;
             }
-            
+
             document.getElementById('view-event-description').textContent = event.description || '';
             document.getElementById('view-event-description').style.display = event.description ? 'block' : 'none';
-            
+
             renderEventItems();
             showView('event-view');
         }
@@ -1264,17 +1269,17 @@
         function renderEventItems() {
             const container = document.getElementById('event-items-list');
             const allItems = [...currentEvent.items, ...(currentEvent.customItems || [])];
-            
+
             // Empty state
             if (allItems.length === 0) {
                 container.innerHTML = `<div class="empty-state">${t('noItemsYetGuest')}</div>`;
                 return;
             }
-            
+
             // Calculate progress
             const claimedCount = allItems.filter(item => item.claimants && item.claimants.length > 0).length;
             const totalCount = allItems.length;
-            
+
             // Sort: unclaimed first, then claimed
             const sortedItems = [...allItems].sort((a, b) => {
                 const aHasClaims = a.claimants && a.claimants.length > 0;
@@ -1282,7 +1287,7 @@
                 if (aHasClaims === bHasClaims) return 0;
                 return aHasClaims ? 1 : -1;
             });
-            
+
             const progressHtml = `
                 <div class="progress-summary">
                     <span class="progress-text">${claimedCount} ${t('of')} ${totalCount} ${t('itemsClaimed')}</span>
@@ -1291,10 +1296,10 @@
                     </div>
                 </div>
             `;
-            
+
             const itemsHtml = sortedItems.map(item => {
                 const hasClaims = item.claimants && item.claimants.length > 0;
-                
+
                 return `
                     <div class="event-item ${hasClaims ? 'claimed' : ''}">
                         <div class="event-item-header">
@@ -1303,7 +1308,7 @@
                                 ${item.isCustom ? '<span class="badge badge-generic" style="margin-left: 0.5rem;">+</span>' : ''}
                             </div>
                         </div>
-                        
+
                         ${hasClaims ? `
                             <div class="event-item-claimants">
                                 ${item.claimants.map(c => `
@@ -1315,7 +1320,7 @@
                                 `).join('')}
                             </div>
                         ` : ''}
-                        
+
                         <div class="claim-form">
                             <input type="text" id="claim-name-${item.id}" placeholder="${t('yourName')}">
                             <input type="text" id="claim-notes-${item.id}" placeholder="${t('notesOptional')}">
@@ -1324,80 +1329,74 @@
                     </div>
                 `;
             }).join('');
-            
+
             container.innerHTML = progressHtml + itemsHtml;
         }
 
-        function claimItem(itemId) {
+        async function claimItem(itemId) {
             const nameInput = document.getElementById(`claim-name-${itemId}`);
             const notesInput = document.getElementById(`claim-notes-${itemId}`);
-            
+
             const name = nameInput.value.trim();
             if (!name) {
                 notify(t('enterName'));
                 return;
             }
-            
+
             const notes = notesInput ? notesInput.value.trim() : '';
-            
-            // Find item in either items or customItems
-            let item = currentEvent.items.find(i => i.id === itemId);
-            if (!item) {
-                item = currentEvent.customItems.find(i => i.id === itemId);
-            }
-            
-            if (item) {
-                if (!item.claimants) item.claimants = [];
-                item.claimants.push({ name, notes });
-                saveEvent(currentEvent);
+            const isCustom = !!(currentEvent.customItems || []).find(i => i.id === itemId);
+
+            try {
+                const event = await api('POST', `/api/events/${currentEvent.id}/items/${itemId}/claim`, {
+                    name, notes, isCustom
+                });
+                currentEvent = event;
                 renderEventItems();
                 notify(t('claimed'), 'success');
+            } catch (e) {
+                notify(t('networkError'));
             }
         }
 
-        function unclaimItem(itemId, claimantName) {
-            let item = currentEvent.items.find(i => i.id === itemId);
-            if (!item) {
-                item = currentEvent.customItems.find(i => i.id === itemId);
-            }
-            
-            if (item && item.claimants) {
-                item.claimants = item.claimants.filter(c => c.name !== claimantName);
-                saveEvent(currentEvent);
+        async function unclaimItem(itemId, claimantName) {
+            const isCustom = !!(currentEvent.customItems || []).find(i => i.id === itemId);
+
+            try {
+                const event = await api('POST', `/api/events/${currentEvent.id}/items/${itemId}/unclaim`, {
+                    name: claimantName, isCustom
+                });
+                currentEvent = event;
                 renderEventItems();
                 notify(t('unclaimed'));
+            } catch (e) {
+                notify(t('networkError'));
             }
         }
 
-        function addCustomItem() {
+        async function addCustomItem() {
             const nameInput = document.getElementById('custom-item-name');
             const personInput = document.getElementById('custom-item-person');
-            
+
             const itemName = nameInput.value.trim();
             const personName = personInput.value.trim();
-            
+
             if (!itemName || !personName) {
                 notify(t('enterName'));
                 return;
             }
-            
-            if (!currentEvent.customItems) currentEvent.customItems = [];
-            
-            currentEvent.customItems.push({
-                id: generateId(),
-                name: itemName,
-                allowMultiple: false,
-                isGeneric: false,
-                isCustom: true,
-                claimants: [{ name: personName, detail: null }]
-            });
-            
-            nameInput.value = '';
-            personInput.value = '';
-            
-            saveEvent(currentEvent);
-            renderEventItems();
-            notify(t('itemAdded'), 'success');
+
+            try {
+                const event = await api('POST', `/api/events/${currentEvent.id}/custom-items`, {
+                    name: itemName, claimedBy: personName
+                });
+                currentEvent = event;
+                nameInput.value = '';
+                personInput.value = '';
+                renderEventItems();
+                notify(t('itemAdded'), 'success');
+            } catch (e) {
+                notify(t('networkError'));
+            }
         }
 
         // ===================
@@ -1405,11 +1404,11 @@
         // ===================
         function loadHostView(event) {
             currentEvent = event;
-            
+
             document.getElementById('host-event-name').textContent = event.name;
             document.getElementById('host-event-date').textContent = formatDate(event.date);
             document.getElementById('host-event-time').textContent = formatTime(event.time);
-            
+
             // Show place with optional pin link
             const placeEl = document.getElementById('host-event-place');
             if (event.pin) {
@@ -1417,7 +1416,7 @@
             } else {
                 placeEl.textContent = event.place;
             }
-            
+
             // Fill edit form
             document.getElementById('host-edit-name').value = event.name;
             document.getElementById('host-edit-date').value = event.date;
@@ -1425,7 +1424,7 @@
             document.getElementById('host-edit-place').value = event.place;
             document.getElementById('host-edit-pin').value = event.pin || '';
             document.getElementById('host-edit-description').value = event.description || '';
-            
+
             // Set share links
             refreshShareLinks();
 
@@ -1436,17 +1435,17 @@
         function renderHostItems() {
             const container = document.getElementById('host-items-list');
             const allItems = [...currentEvent.items, ...(currentEvent.customItems || [])];
-            
+
             // Empty state
             if (allItems.length === 0) {
                 container.innerHTML = `<div class="empty-state">${t('noItemsYet')}</div>`;
                 return;
             }
-            
+
             // Calculate progress
             const claimedCount = allItems.filter(item => item.claimants && item.claimants.length > 0).length;
             const totalCount = allItems.length;
-            
+
             // Sort: unclaimed first, then claimed
             const sortedItems = [...allItems].sort((a, b) => {
                 const aHasClaims = a.claimants && a.claimants.length > 0;
@@ -1454,7 +1453,7 @@
                 if (aHasClaims === bHasClaims) return 0;
                 return aHasClaims ? 1 : -1;
             });
-            
+
             const progressHtml = `
                 <div class="progress-summary">
                     <span class="progress-text">${claimedCount} ${t('of')} ${totalCount} ${t('itemsClaimed')}</span>
@@ -1463,10 +1462,10 @@
                     </div>
                 </div>
             `;
-            
+
             const itemsHtml = sortedItems.map(item => {
                 const hasClaims = item.claimants && item.claimants.length > 0;
-                
+
                 return `
                     <div class="event-item ${hasClaims ? 'claimed' : ''}">
                         <div class="event-item-header">
@@ -1476,7 +1475,7 @@
                             </div>
                             <button class="btn btn-danger btn-small" onclick="hostRemoveItem('${item.id}', ${item.isCustom || false})">${t('removeItem')}</button>
                         </div>
-                        
+
                         ${hasClaims ? `
                             <div class="event-item-claimants">
                                 ${item.claimants.map(c => `
@@ -1491,117 +1490,100 @@
                     </div>
                 `;
             }).join('');
-            
+
             container.innerHTML = progressHtml + itemsHtml;
         }
 
-        function saveEventEdits() {
-            currentEvent.name = document.getElementById('host-edit-name').value.trim();
-            currentEvent.date = document.getElementById('host-edit-date').value;
-            currentEvent.time = document.getElementById('host-edit-time').value;
-            currentEvent.place = document.getElementById('host-edit-place').value.trim();
-            currentEvent.pin = document.getElementById('host-edit-pin').value.trim();
-            currentEvent.description = document.getElementById('host-edit-description').value.trim();
-            
-            saveEvent(currentEvent);
-            
-            // Update header display
-            document.getElementById('host-event-name').textContent = currentEvent.name;
-            document.getElementById('host-event-date').textContent = formatDate(currentEvent.date);
-            document.getElementById('host-event-time').textContent = formatTime(currentEvent.time);
-            
-            const placeEl = document.getElementById('host-event-place');
-            if (currentEvent.pin) {
-                placeEl.innerHTML = `<a href="${escapeHtml(currentEvent.pin)}" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">${escapeHtml(currentEvent.place)} 📍</a>`;
-            } else {
-                placeEl.textContent = currentEvent.place;
+        async function saveEventEdits() {
+            const name = document.getElementById('host-edit-name').value.trim();
+            const date = document.getElementById('host-edit-date').value;
+            const time = document.getElementById('host-edit-time').value;
+            const place = document.getElementById('host-edit-place').value.trim();
+            const pin = document.getElementById('host-edit-pin').value.trim();
+            const description = document.getElementById('host-edit-description').value.trim();
+
+            try {
+                const event = await api('PUT', `/api/events/${currentEvent.id}`, {
+                    hostKey: currentHostKey,
+                    name, date, time, place, pin, description
+                });
+                currentEvent = event;
+
+                // Update header display
+                document.getElementById('host-event-name').textContent = event.name;
+                document.getElementById('host-event-date').textContent = formatDate(event.date);
+                document.getElementById('host-event-time').textContent = formatTime(event.time);
+
+                const placeEl = document.getElementById('host-event-place');
+                if (event.pin) {
+                    placeEl.innerHTML = `<a href="${escapeHtml(event.pin)}" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">${escapeHtml(event.place)} 📍</a>`;
+                } else {
+                    placeEl.textContent = event.place;
+                }
+
+                refreshShareLinks();
+                notify(t('changesSaved'), 'success');
+            } catch (e) {
+                notify(t('networkError'));
             }
-
-            // Regenerate share links with updated data
-            refreshShareLinks();
-
-            notify(t('changesSaved'), 'success');
         }
 
-        function hostAddItem() {
+        async function hostAddItem() {
             const nameInput = document.getElementById('host-new-item-name');
-            
+
             const name = nameInput.value.trim();
             if (!name) return;
-            
-            currentEvent.items.push({
-                id: generateId(),
-                name: name,
-                claimants: []
-            });
-            
-            nameInput.value = '';
-            
-            saveEvent(currentEvent);
-            renderHostItems();
-            refreshShareLinks();
-            notify(t('itemAdded'), 'success');
+
+            try {
+                const event = await api('POST', `/api/events/${currentEvent.id}/items`, {
+                    hostKey: currentHostKey, name
+                });
+                currentEvent = event;
+                nameInput.value = '';
+                renderHostItems();
+                refreshShareLinks();
+                notify(t('itemAdded'), 'success');
+            } catch (e) {
+                notify(t('networkError'));
+            }
         }
 
-        function hostRemoveItem(itemId, isCustom) {
+        async function hostRemoveItem(itemId, isCustom) {
             if (!confirm(t('confirmDeleteItem'))) return;
 
-            if (isCustom) {
-                currentEvent.customItems = currentEvent.customItems.filter(i => i.id !== itemId);
-            } else {
-                currentEvent.items = currentEvent.items.filter(i => i.id !== itemId);
+            try {
+                const event = await api('DELETE', `/api/events/${currentEvent.id}/items/${itemId}?hostKey=${currentHostKey}&isCustom=${isCustom}`);
+                currentEvent = event;
+                renderHostItems();
+                refreshShareLinks();
+                notify(t('itemRemoved'));
+            } catch (e) {
+                notify(t('networkError'));
             }
-            saveEvent(currentEvent);
-            renderHostItems();
-            refreshShareLinks();
-            notify(t('itemRemoved'));
         }
 
-        function hostRemoveClaimant(itemId, claimantName, isCustom) {
+        async function hostRemoveClaimant(itemId, claimantName, isCustom) {
             if (!confirm(t('confirmRemoveClaimant'))) return;
 
-            const items = isCustom ? currentEvent.customItems : currentEvent.items;
-            const item = items.find(i => i.id === itemId);
-
-            if (item && item.claimants) {
-                item.claimants = item.claimants.filter(c => c.name !== claimantName);
-                saveEvent(currentEvent);
+            try {
+                const event = await api('DELETE', `/api/events/${currentEvent.id}/items/${itemId}/claimants/${encodeURIComponent(claimantName)}?hostKey=${currentHostKey}&isCustom=${isCustom}`);
+                currentEvent = event;
                 renderHostItems();
                 refreshShareLinks();
                 notify(t('unclaimed'));
+            } catch (e) {
+                notify(t('networkError'));
             }
         }
 
         // ===================
         // UTILITIES
         // ===================
-        function generateId() {
-            return Math.random().toString(36).substring(2, 10);
-        }
-
         function refreshShareLinks() {
-            if (!currentEvent) return;
-            const baseUrl = window.location.origin + window.location.pathname;
-            const guestData = encodeEventForUrl(currentEvent, false);
-            const hostData = encodeEventForUrl(currentEvent, true);
-            document.getElementById('guest-link').value = `${baseUrl}?event=${currentEvent.id}&d=${guestData}`;
-            document.getElementById('host-link').value = `${baseUrl}?event=${currentEvent.id}&host=${currentEvent.hostKey}&d=${hostData}`;
-        }
-
-        function encodeEventForUrl(event, includeHostKey) {
-            const data = { ...event };
-            if (!includeHostKey) delete data.hostKey;
-            const json = JSON.stringify(data);
-            return btoa(unescape(encodeURIComponent(json)));
-        }
-
-        function decodeEventFromUrl(encoded) {
-            try {
-                const json = decodeURIComponent(escape(atob(encoded)));
-                return JSON.parse(json);
-            } catch (e) {
-                return null;
-            }
+            if (!currentEvent || !currentHostKey) return;
+            const baseUrl = window.location.origin;
+            document.getElementById('guest-link').value = `${baseUrl}/?event=${currentEvent.id}`;
+            document.getElementById('host-link').value = `${baseUrl}/?event=${currentEvent.id}&host=${currentHostKey}`;
         }
 
         function escapeHtml(str) {
@@ -1620,10 +1602,10 @@
             const [hours, minutes] = timeStr.split(':');
             const date = new Date();
             date.setHours(parseInt(hours), parseInt(minutes));
-            return date.toLocaleTimeString(currentLang === 'es' ? 'es-PR' : 'en-US', { 
-                hour: 'numeric', 
+            return date.toLocaleTimeString(currentLang === 'es' ? 'es-PR' : 'en-US', {
+                hour: 'numeric',
                 minute: '2-digit',
-                hour12: true 
+                hour12: true
             });
         }
 
@@ -1647,9 +1629,9 @@
 
         function exportList() {
             if (!currentEvent) return;
-            
+
             const allItems = [...currentEvent.items, ...(currentEvent.customItems || [])];
-            
+
             let text = `${t('exportTitle')}: ${currentEvent.name}\n`;
             text += `${'='.repeat(40)}\n\n`;
             text += `📅 ${formatDate(currentEvent.date)}\n`;
@@ -1659,10 +1641,10 @@
                 text += `\n${currentEvent.description}\n`;
             }
             text += `\n${'='.repeat(40)}\n\n`;
-            
+
             allItems.forEach(item => {
                 const hasClaims = item.claimants && item.claimants.length > 0;
-                
+
                 if (hasClaims) {
                     item.claimants.forEach(c => {
                         text += `✅ ${item.name}\n`;
@@ -1673,7 +1655,7 @@
                     text += `   → ${t('unclaimed')}\n\n`;
                 }
             });
-            
+
             // Create and download file
             const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
@@ -1684,7 +1666,7 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
+
             notify(t('copied'), 'success');
         }
 
@@ -1694,7 +1676,7 @@
             notification.className = `notification ${type}`;
             notification.textContent = message;
             container.appendChild(notification);
-            
+
             setTimeout(() => {
                 notification.style.opacity = '0';
                 notification.style.transform = 'translateY(20px)';
@@ -1705,31 +1687,27 @@
         // ===================
         // URL ROUTING
         // ===================
-        function handleRoute() {
+        async function handleRoute() {
             const params = new URLSearchParams(window.location.search);
             const eventId = params.get('event');
             const hostKey = params.get('host');
-            const encodedData = params.get('d');
 
             if (eventId) {
-                let event = loadEvent(eventId);
+                try {
+                    const url = hostKey
+                        ? `/api/events/${eventId}?hostKey=${hostKey}`
+                        : `/api/events/${eventId}`;
+                    const event = await api('GET', url);
 
-                // If event not in localStorage, try decoding from URL
-                if (!event && encodedData) {
-                    event = decodeEventFromUrl(encodedData);
-                    if (event) {
-                        event.id = eventId;
-                        saveEvent(event);
-                    }
-                }
-
-                if (event) {
-                    if (hostKey && hostKey === event.hostKey) {
+                    if (hostKey && event.hostKey) {
+                        currentHostKey = hostKey;
                         loadHostView(event);
                     } else {
                         loadEventView(event);
                     }
                     return;
+                } catch (e) {
+                    notify(t('eventNotFound'));
                 }
             }
 
