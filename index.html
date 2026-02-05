@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SORULLO — Cada cual trae lo suyo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #FFD23F;
+            --yellow-light: #FFF0B3;
+            --orange: #FF6B35;
+            --teal: #00B4A6;
+            --teal-dark: #008F84;
+            --cream: #FFF9E8;
+            --brown: #4A3728;
+            --brown-light: #6B5344;
+            --white: #FFFFFF;
+            --shadow: rgba(74, 55, 40, 0.15);
+            --shadow-strong: rgba(74, 55, 40, 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            color: var(--brown);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, var(--yellow-light) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(0, 180, 166, 0.1) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Header */
+        header {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-family: 'Dela Gothic One', cursive;
+            font-size: 2rem;
+            color: var(--orange);
+            text-decoration: none;
+            letter-spacing: -1px;
+            transition: transform 0.2s ease;
+        }
+
+        .logo:hover {
+            transform: rotate(-2deg) scale(1.05);
+        }
+
+        .lang-toggle {
+            display: flex;
+            gap: 0.25rem;
+            background: var(--white);
+            padding: 0.25rem;
+            border-radius: 2rem;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .lang-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--brown-light);
+            cursor: pointer;
+            border-radius: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .lang-btn.active {
+            background: var(--teal);
+            color: var(--white);
+        }
+
+        /* Main container */
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem 4rem;
+        }
+
+        /* Views */
+        .view {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Home view */
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem 4rem;
+        }
+
+        .hero-title {
+            font-family: 'Dela Gothic One', cursive;
+            font-size: clamp(3rem, 12vw, 6rem);
+            color: var(--orange);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            letter-spacing: -2px;
+        }
+
+        .hero-tagline {
+            font-size: 1.25rem;
+            color: var(--brown-light);
+            font-style: italic;
+            margin-bottom: 3rem;
+        }
+
+        .hero-description {
+            max-width: 500px;
+            margin: 0 auto 2.5rem;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--brown);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 3rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--teal);
+            color: var(--white);
+            box-shadow: 0 4px 16px rgba(0, 180, 166, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: var(--teal-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 180, 166, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--brown);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-strong);
+        }
+
+        .btn-small {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        /* Decorative elements */
+        .deco-sorullo {
+            width: 120px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--yellow) 0%, #E8B800 100%);
+            border-radius: 20px;
+            margin: 2rem auto;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(255, 210, 63, 0.4);
+        }
+
+        .deco-sorullo::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 60%;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        /* Form styles */
+        .form-card {
+            background: var(--white);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 8px 32px var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-title {
+            font-family: 'Dela Gothic One', cursive;
+            font-size: 1.5rem;
+            color: var(--orange);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--brown);
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        textarea {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            border: 2px solid #E8E0D5;
+            border-radius: 0.75rem;
+            background: var(--cream);
+            color: var(--brown);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(0, 180, 166, 0.15);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Items section */
+        .items-section {
+            background: var(--white);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+
+        .items-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .item-input-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .item-input-row input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .items-list {
+            list-style: none;
+            margin-top: 1.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--brown-light);
+            font-style: italic;
+            background: var(--cream);
+            border-radius: 0.75rem;
+        }
+
+        .progress-summary {
+            background: var(--cream);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .progress-text {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--brown);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #E8E0D5;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--teal) 0%, var(--teal-dark) 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .item-entry {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--cream);
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .item-entry .item-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .badge {
+            padding: 0.25rem 0.6rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 1rem;
+            background: rgba(0, 180, 166, 0.15);
+            color: var(--teal-dark);
+        }
+
+        .item-remove {
+            background: none;
+            border: none;
+            color: #c0392b;
+            cursor: pointer;
+            font-size: 1.25rem;
+            padding: 0.25rem;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .item-remove:hover {
+            opacity: 1;
+        }
+
+        /* Event view */
+        .event-header {
+            background: linear-gradient(135deg, var(--orange) 0%, #E85A2A 100%);
+            color: var(--white);
+            padding: 2.5rem 2rem;
+            border-radius: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .event-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .event-name {
+            font-family: 'Dela Gothic One', cursive;
+            font-size: clamp(1.75rem, 6vw, 2.5rem);
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .event-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            font-size: 1rem;
+            opacity: 0.95;
+        }
+
+        .event-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .event-meta-item svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .event-description {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.7;
+            box-shadow: 0 4px 16px var(--shadow);
+        }
+
+        /* Items display in event view */
+        .event-items {
+            background: var(--white);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+
+        .event-item {
+            padding: 1.25rem;
+            background: var(--cream);
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--teal);
+            transition: all 0.2s ease;
+        }
+
+        .event-item.claimed {
+            border-left-color: var(--yellow);
+            background: var(--yellow-light);
+        }
+
+        .event-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .event-item-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--brown);
+        }
+
+        .event-item-claimants {
+            margin-top: 0.75rem;
+        }
+
+        .claimant {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--white);
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            margin: 0.25rem 0.25rem 0.25rem 0;
+            box-shadow: 0 2px 6px var(--shadow);
+        }
+
+        .claimant-avatar {
+            width: 24px;
+            height: 24px;
+            background: var(--teal);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .claimant-remove {
+            background: none;
+            border: none;
+            color: #c0392b;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0;
+            margin-left: 0.25rem;
+            opacity: 0.6;
+        }
+
+        .claimant-remove:hover {
+            opacity: 1;
+        }
+
+        .claim-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .claim-form input {
+            padding: 0.6rem 1rem;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        /* Add custom item section */
+        .add-custom-section {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px dashed #E8E0D5;
+        }
+
+        .add-custom-title {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--brown-light);
+        }
+
+        /* Share section */
+        .share-section {
+            background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+            color: var(--white);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .share-title {
+            font-family: 'Dela Gothic One', cursive;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .share-links {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .share-link-group {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1rem;
+            border-radius: 1rem;
+        }
+
+        .share-link-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .share-link-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .share-link-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            background: var(--white);
+            color: var(--brown);
+        }
+
+        .copy-btn {
+            padding: 0.75rem 1rem;
+            background: var(--yellow);
+            color: var(--brown);
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #E8B800;
+        }
+
+        /* Notifications area */
+        .notifications {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .notification {
+            background: var(--brown);
+            color: var(--white);
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 16px var(--shadow-strong);
+            animation: slideUp 0.3s ease;
+            max-width: 300px;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .notification.success {
+            background: var(--teal);
+        }
+
+        /* Back button */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--brown-light);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--brown);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--brown-light);
+            font-size: 0.9rem;
+        }
+
+        /* Host badge */
+        .host-badge {
+            display: inline-block;
+            background: var(--orange);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            header {
+                padding: 1rem;
+            }
+            
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            main {
+                padding: 1rem;
+            }
+            
+            .form-card,
+            .items-section,
+            .event-items {
+                padding: 1.5rem;
+            }
+            
+            .event-header {
+                padding: 1.5rem;
+            }
+            
+            .notifications {
+                bottom: 1rem;
+                right: 1rem;
+                left: 1rem;
+            }
+            
+            .notification {
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="#" class="logo" onclick="goHome()">SORULLO</a>
+        <div class="lang-toggle">
+            <button class="lang-btn active" data-lang="es" onclick="setLanguage('es')">ES</button>
+            <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- HOME VIEW -->
+        <section id="home-view" class="view active">
+            <div class="hero">
+                <h1 class="hero-title">SORULLO</h1>
+                <p class="hero-tagline">Cada cual trae lo suyo</p>
+                <div class="deco-sorullo"></div>
+                <p class="hero-description" data-i18n="heroDescription">
+                    Organiza tu fiesta, chinchorro, o jangueo sin el relajo de coordinar quién trae qué. Crea tu evento, comparte el link, y que cada cual escoja lo suyo.
+                </p>
+                <button class="btn btn-primary" onclick="showView('create-view')" data-i18n="createEvent">
+                    Crear Evento
+                </button>
+            </div>
+        </section>
+
+        <!-- CREATE EVENT VIEW -->
+        <section id="create-view" class="view">
+            <a href="#" class="back-link" onclick="showView('home-view')">
+                ← <span data-i18n="back">Volver</span>
+            </a>
+            
+            <div class="form-card">
+                <h2 class="form-title" data-i18n="eventDetails">Detalles del Evento</h2>
+                <form id="event-form">
+                    <div class="form-group">
+                        <label for="event-name" data-i18n="eventName">Nombre del evento</label>
+                        <input type="text" id="event-name" required placeholder="Ej: Navidad en casa de Abuela">
+                    </div>
+                    <div class="form-group">
+                        <label for="event-date" data-i18n="date">Fecha</label>
+                        <input type="date" id="event-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="event-time" data-i18n="time">Hora</label>
+                        <input type="time" id="event-time" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="event-place" data-i18n="place">Lugar</label>
+                        <input type="text" id="event-place" required placeholder="Ej: Calle Luna #123, Santurce">
+                    </div>
+                    <div class="form-group">
+                        <label for="event-pin" data-i18n="pinLink">Link del pin (opcional)</label>
+                        <input type="text" id="event-pin" placeholder="Ej: https://maps.google.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label for="event-description" data-i18n="description">Descripción</label>
+                        <textarea id="event-description" placeholder="Detalles adicionales, instrucciones, etc."></textarea>
+                    </div>
+                </form>
+            </div>
+
+            <div class="items-section">
+                <div class="items-header">
+                    <h2 class="form-title" data-i18n="itemsNeeded">¿Qué hace falta?</h2>
+                </div>
+                
+                <div class="item-input-row">
+                    <input type="text" id="new-item-name" placeholder="Ej: Arroz con gandules" data-i18n-placeholder="itemPlaceholder">
+                    <button class="btn btn-secondary btn-small" onclick="addItem()" data-i18n="add">Añadir</button>
+                </div>
+                
+                <ul class="items-list" id="items-list"></ul>
+                
+                <div style="margin-top: 2rem; text-align: center;">
+                    <button class="btn btn-primary" onclick="submitEvent()" data-i18n="createAndShare">
+                        Crear y Compartir Evento
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- EVENT VIEW (Guest) -->
+        <section id="event-view" class="view">
+            <a href="#" class="back-link" onclick="goHome()">
+                ← <span data-i18n="backHome">Volver al inicio</span>
+            </a>
+            
+            <div class="event-header">
+                <h1 class="event-name" id="view-event-name"></h1>
+                <div class="event-meta">
+                    <div class="event-meta-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <span id="view-event-date"></span>
+                    </div>
+                    <div class="event-meta-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span id="view-event-time"></span>
+                    </div>
+                    <div class="event-meta-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <span id="view-event-place"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="event-description" id="view-event-description"></div>
+
+            <div class="event-items">
+                <h2 class="form-title" data-i18n="whatToBring">¿Qué vas a traer?</h2>
+                <div id="event-items-list"></div>
+                
+                <div class="add-custom-section">
+                    <p class="add-custom-title" data-i18n="bringingSomethingElse">¿Traes algo que no está en la lista?</p>
+                    <div class="claim-form">
+                        <input type="text" id="custom-item-name" placeholder="¿Qué traes?" data-i18n-placeholder="whatBringing">
+                        <input type="text" id="custom-item-person" placeholder="Tu nombre" data-i18n-placeholder="yourName">
+                        <button class="btn btn-secondary btn-small" onclick="addCustomItem()" data-i18n="add">Añadir</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOST VIEW -->
+        <section id="host-view" class="view">
+            <a href="#" class="back-link" onclick="goHome()">
+                ← <span data-i18n="backHome">Volver al inicio</span>
+            </a>
+            
+            <div class="event-header">
+                <h1 class="event-name">
+                    <span id="host-event-name"></span>
+                    <span class="host-badge" data-i18n="hostMode">Modo Host</span>
+                </h1>
+                <div class="event-meta">
+                    <div class="event-meta-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <span id="host-event-date"></span>
+                    </div>
+                    <div class="event-meta-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span id="host-event-time"></span>
+                    </div>
+                    <div class="event-meta-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <span id="host-event-place"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <h2 class="form-title" data-i18n="editEvent">Editar Evento</h2>
+                <form id="host-event-form">
+                    <div class="form-group">
+                        <label for="host-edit-name" data-i18n="eventName">Nombre del evento</label>
+                        <input type="text" id="host-edit-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="host-edit-date" data-i18n="date">Fecha</label>
+                        <input type="date" id="host-edit-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="host-edit-time" data-i18n="time">Hora</label>
+                        <input type="time" id="host-edit-time" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="host-edit-place" data-i18n="place">Lugar</label>
+                        <input type="text" id="host-edit-place" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="host-edit-pin" data-i18n="pinLink">Link del pin (opcional)</label>
+                        <input type="text" id="host-edit-pin" placeholder="Ej: https://maps.google.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label for="host-edit-description" data-i18n="description">Descripción</label>
+                        <textarea id="host-edit-description"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-small" onclick="saveEventEdits()" data-i18n="saveChanges">Guardar Cambios</button>
+                </form>
+            </div>
+
+            <div class="items-section">
+                <div class="items-header">
+                    <h2 class="form-title" data-i18n="manageItems">Administrar Items</h2>
+                </div>
+                
+                <div class="item-input-row">
+                    <input type="text" id="host-new-item-name" placeholder="Añadir nuevo item" data-i18n-placeholder="addNewItem">
+                    <button class="btn btn-secondary btn-small" onclick="hostAddItem()" data-i18n="add">Añadir</button>
+                </div>
+                
+                <div id="host-items-list"></div>
+            </div>
+
+            <div class="share-section">
+                <h3 class="share-title" data-i18n="shareEvent">Compartir Evento</h3>
+                <div class="share-links">
+                    <div class="share-link-group">
+                        <p class="share-link-label" data-i18n="guestLink">Link para invitados:</p>
+                        <div class="share-link-row">
+                            <input type="text" class="share-link-input" id="guest-link" readonly>
+                            <button class="copy-btn" onclick="copyLink('guest-link')" data-i18n="copy">Copiar</button>
+                        </div>
+                    </div>
+                    <div class="share-link-group">
+                        <p class="share-link-label" data-i18n="hostLink">Link de host (guárdalo):</p>
+                        <div class="share-link-row">
+                            <input type="text" class="share-link-input" id="host-link" readonly>
+                            <button class="copy-btn" onclick="copyLink('host-link')" data-i18n="copy">Copiar</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; text-align: center;">
+                    <button class="btn btn-secondary btn-small" onclick="exportList()" style="background: var(--yellow); color: var(--brown);">
+                        📄 <span data-i18n="exportList">Descargar lista</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="notifications" id="notifications"></div>
+
+    <footer>
+        <p>SORULLO © 2025 — Hecho con amor en 🇵🇷</p>
+    </footer>
+
+    <script>
+        // ===================
+        // TRANSLATIONS
+        // ===================
+        const translations = {
+            es: {
+                heroDescription: "Organiza tu fiesta, chinchorro, o jangueo sin el relajo de coordinar quién trae qué. Crea tu evento, comparte el link, y que cada cual escoja lo suyo.",
+                createEvent: "Crear Evento",
+                back: "Volver",
+                backHome: "Volver al inicio",
+                eventDetails: "Detalles del Evento",
+                eventName: "Nombre del evento",
+                date: "Fecha",
+                time: "Hora",
+                place: "Lugar",
+                pinLink: "Link del pin (opcional)",
+                description: "Descripción",
+                itemsNeeded: "¿Qué hace falta?",
+                itemPlaceholder: "Ej: Arroz con gandules",
+                add: "Añadir",
+                createAndShare: "Crear y Compartir Evento",
+                whatToBring: "¿Qué vas a traer?",
+                bringingSomethingElse: "¿Quieres traer algo que no está en la lista? ¡Añádelo!",
+                whatBringing: "¿Qué traes?",
+                yourName: "Tu nombre",
+                notesOptional: "Notas (opcional)",
+                claim: "¡Yo lo traigo!",
+                unclaim: "×",
+                hostMode: "Modo Host",
+                editEvent: "Editar Evento",
+                saveChanges: "Guardar Cambios",
+                manageItems: "Administrar Items",
+                addNewItem: "Añadir nuevo item",
+                shareEvent: "Compartir Evento",
+                guestLink: "Link para invitados:",
+                hostLink: "Link de host (guárdalo):",
+                copy: "Copiar",
+                copied: "¡Copiado!",
+                madeWith: "Hecho con",
+                eventCreated: "¡Evento creado!",
+                itemAdded: "Item añadido",
+                itemRemoved: "Item eliminado",
+                claimed: "¡Anotado!",
+                unclaimed: "Removido",
+                changesSaved: "Cambios guardados",
+                enterName: "Escribe tu nombre",
+                enterItemName: "Escribe el nombre del item",
+                removeItem: "Eliminar item",
+                confirmDeleteItem: "¿Seguro que quieres eliminar este item?",
+                confirmRemoveClaimant: "¿Seguro que quieres remover a esta persona?",
+                noItemsYet: "Todavía no hay nada en la lista",
+                noItemsYetGuest: "El host no ha añadido items todavía",
+                itemsClaimed: "reclamados",
+                of: "de",
+                exportList: "Descargar lista",
+                exportTitle: "Lista de SORULLO",
+                unclaimed: "Sin reclamar"
+            },
+            en: {
+                heroDescription: "Organize your party, cookout, or hangout without the hassle of coordinating who brings what. Create your event, share the link, and let everyone pick their item.",
+                createEvent: "Create Event",
+                back: "Back",
+                backHome: "Back to home",
+                eventDetails: "Event Details",
+                eventName: "Event name",
+                date: "Date",
+                time: "Time",
+                place: "Location",
+                pinLink: "Map pin link (optional)",
+                description: "Description",
+                itemsNeeded: "What's needed?",
+                itemPlaceholder: "Ex: Rice and beans",
+                add: "Add",
+                createAndShare: "Create and Share Event",
+                whatToBring: "What are you bringing?",
+                bringingSomethingElse: "Bringing something not on the list?",
+                whatBringing: "What are you bringing?",
+                yourName: "Your name",
+                notesOptional: "Notes (optional)",
+                claim: "I'll bring it!",
+                unclaim: "×",
+                hostMode: "Host Mode",
+                editEvent: "Edit Event",
+                saveChanges: "Save Changes",
+                manageItems: "Manage Items",
+                addNewItem: "Add new item",
+                shareEvent: "Share Event",
+                guestLink: "Guest link:",
+                hostLink: "Host link (save it):",
+                copy: "Copy",
+                copied: "Copied!",
+                madeWith: "Made with",
+                eventCreated: "Event created!",
+                itemAdded: "Item added",
+                itemRemoved: "Item removed",
+                claimed: "Got it!",
+                unclaimed: "Removed",
+                changesSaved: "Changes saved",
+                enterName: "Enter your name",
+                enterItemName: "Enter item name",
+                removeItem: "Remove item",
+                confirmDeleteItem: "Are you sure you want to delete this item?",
+                confirmRemoveClaimant: "Are you sure you want to remove this person?",
+                noItemsYet: "No items yet",
+                noItemsYetGuest: "The host hasn't added items yet",
+                itemsClaimed: "claimed",
+                of: "of",
+                exportList: "Download list",
+                exportTitle: "SORULLO List",
+                unclaimed: "Unclaimed"
+            }
+        };
+
+        let currentLang = 'es';
+        let currentEvent = null;
+        let items = [];
+
+        // ===================
+        // LANGUAGE
+        // ===================
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+            updateTranslations();
+        }
+
+        function t(key) {
+            return translations[currentLang][key] || key;
+        }
+
+        function updateTranslations() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                el.textContent = t(el.dataset.i18n);
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                el.placeholder = t(el.dataset.i18nPlaceholder);
+            });
+            // Re-render items if in event view
+            if (currentEvent && document.getElementById('event-view').classList.contains('active')) {
+                renderEventItems();
+            }
+            if (currentEvent && document.getElementById('host-view').classList.contains('active')) {
+                renderHostItems();
+            }
+        }
+
+        // ===================
+        // NAVIGATION
+        // ===================
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function goHome() {
+            currentEvent = null;
+            items = [];
+            window.history.pushState({}, '', window.location.pathname);
+            showView('home-view');
+        }
+
+        // ===================
+        // ITEMS (Create View)
+        // ===================
+        function addItem() {
+            const nameInput = document.getElementById('new-item-name');
+            
+            const name = nameInput.value.trim();
+            if (!name) return;
+            
+            items.push({
+                id: generateId(),
+                name: name,
+                claimants: []
+            });
+            
+            nameInput.value = '';
+            
+            renderItemsList();
+            notify(t('itemAdded'), 'success');
+        }
+
+        function removeItem(id) {
+            items = items.filter(item => item.id !== id);
+            renderItemsList();
+            notify(t('itemRemoved'));
+        }
+
+        function renderItemsList() {
+            const list = document.getElementById('items-list');
+            if (items.length === 0) {
+                list.innerHTML = `<li class="empty-state">${t('noItemsYet')}</li>`;
+                return;
+            }
+            list.innerHTML = items.map(item => `
+                <li class="item-entry">
+                    <span class="item-name">${escapeHtml(item.name)}</span>
+                    <button class="item-remove" onclick="removeItem('${item.id}')" title="${t('removeItem')}">×</button>
+                </li>
+            `).join('');
+        }
+
+        // ===================
+        // EVENT CREATION
+        // ===================
+        function submitEvent() {
+            const name = document.getElementById('event-name').value.trim();
+            const date = document.getElementById('event-date').value;
+            const time = document.getElementById('event-time').value;
+            const place = document.getElementById('event-place').value.trim();
+            const pin = document.getElementById('event-pin').value.trim();
+            const description = document.getElementById('event-description').value.trim();
+            
+            if (!name || !date || !time || !place) {
+                notify(t('enterItemName'));
+                return;
+            }
+            
+            const eventId = generateId();
+            const hostKey = generateId();
+            
+            currentEvent = {
+                id: eventId,
+                hostKey: hostKey,
+                name: name,
+                date: date,
+                time: time,
+                place: place,
+                pin: pin,
+                description: description,
+                items: [...items],
+                customItems: []
+            };
+            
+            saveEvent(currentEvent);
+            
+            // Show host view with share links
+            loadHostView(currentEvent);
+            notify(t('eventCreated'), 'success');
+        }
+
+        // ===================
+        // EVENT STORAGE (localStorage)
+        // ===================
+        function saveEvent(event) {
+            localStorage.setItem(`sorullo_event_${event.id}`, JSON.stringify(event));
+        }
+
+        function loadEvent(eventId) {
+            const data = localStorage.getItem(`sorullo_event_${eventId}`);
+            return data ? JSON.parse(data) : null;
+        }
+
+        // ===================
+        // EVENT VIEW (Guest)
+        // ===================
+        function loadEventView(event) {
+            currentEvent = event;
+            
+            document.getElementById('view-event-name').textContent = event.name;
+            document.getElementById('view-event-date').textContent = formatDate(event.date);
+            document.getElementById('view-event-time').textContent = formatTime(event.time);
+            
+            // Show place with optional pin link
+            const placeEl = document.getElementById('view-event-place');
+            if (event.pin) {
+                placeEl.innerHTML = `<a href="${escapeHtml(event.pin)}" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">${escapeHtml(event.place)} 📍</a>`;
+            } else {
+                placeEl.textContent = event.place;
+            }
+            
+            document.getElementById('view-event-description').textContent = event.description || '';
+            document.getElementById('view-event-description').style.display = event.description ? 'block' : 'none';
+            
+            renderEventItems();
+            showView('event-view');
+        }
+
+        function renderEventItems() {
+            const container = document.getElementById('event-items-list');
+            const allItems = [...currentEvent.items, ...(currentEvent.customItems || [])];
+            
+            // Empty state
+            if (allItems.length === 0) {
+                container.innerHTML = `<div class="empty-state">${t('noItemsYetGuest')}</div>`;
+                return;
+            }
+            
+            // Calculate progress
+            const claimedCount = allItems.filter(item => item.claimants && item.claimants.length > 0).length;
+            const totalCount = allItems.length;
+            
+            // Sort: unclaimed first, then claimed
+            const sortedItems = [...allItems].sort((a, b) => {
+                const aHasClaims = a.claimants && a.claimants.length > 0;
+                const bHasClaims = b.claimants && b.claimants.length > 0;
+                if (aHasClaims === bHasClaims) return 0;
+                return aHasClaims ? 1 : -1;
+            });
+            
+            const progressHtml = `
+                <div class="progress-summary">
+                    <span class="progress-text">${claimedCount} ${t('of')} ${totalCount} ${t('itemsClaimed')}</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${(claimedCount / totalCount) * 100}%"></div>
+                    </div>
+                </div>
+            `;
+            
+            const itemsHtml = sortedItems.map(item => {
+                const hasClaims = item.claimants && item.claimants.length > 0;
+                
+                return `
+                    <div class="event-item ${hasClaims ? 'claimed' : ''}">
+                        <div class="event-item-header">
+                            <div>
+                                <span class="event-item-name">${escapeHtml(item.name)}</span>
+                                ${item.isCustom ? '<span class="badge badge-generic" style="margin-left: 0.5rem;">+</span>' : ''}
+                            </div>
+                        </div>
+                        
+                        ${hasClaims ? `
+                            <div class="event-item-claimants">
+                                ${item.claimants.map(c => `
+                                    <span class="claimant">
+                                        <span class="claimant-avatar">${c.name.charAt(0).toUpperCase()}</span>
+                                        <span>${escapeHtml(c.name)}${c.notes ? ` — ${escapeHtml(c.notes)}` : ''}</span>
+                                        <button class="claimant-remove" onclick="unclaimItem('${item.id}', '${escapeHtml(c.name)}')" title="${t('unclaim')}">×</button>
+                                    </span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        <div class="claim-form">
+                            <input type="text" id="claim-name-${item.id}" placeholder="${t('yourName')}">
+                            <input type="text" id="claim-notes-${item.id}" placeholder="${t('notesOptional')}">
+                            <button class="btn btn-secondary btn-small" onclick="claimItem('${item.id}')">${t('claim')}</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = progressHtml + itemsHtml;
+        }
+
+        function claimItem(itemId) {
+            const nameInput = document.getElementById(`claim-name-${itemId}`);
+            const notesInput = document.getElementById(`claim-notes-${itemId}`);
+            
+            const name = nameInput.value.trim();
+            if (!name) {
+                notify(t('enterName'));
+                return;
+            }
+            
+            const notes = notesInput ? notesInput.value.trim() : '';
+            
+            // Find item in either items or customItems
+            let item = currentEvent.items.find(i => i.id === itemId);
+            if (!item) {
+                item = currentEvent.customItems.find(i => i.id === itemId);
+            }
+            
+            if (item) {
+                if (!item.claimants) item.claimants = [];
+                item.claimants.push({ name, notes });
+                saveEvent(currentEvent);
+                renderEventItems();
+                notify(t('claimed'), 'success');
+            }
+        }
+
+        function unclaimItem(itemId, claimantName) {
+            let item = currentEvent.items.find(i => i.id === itemId);
+            if (!item) {
+                item = currentEvent.customItems.find(i => i.id === itemId);
+            }
+            
+            if (item && item.claimants) {
+                item.claimants = item.claimants.filter(c => c.name !== claimantName);
+                saveEvent(currentEvent);
+                renderEventItems();
+                notify(t('unclaimed'));
+            }
+        }
+
+        function addCustomItem() {
+            const nameInput = document.getElementById('custom-item-name');
+            const personInput = document.getElementById('custom-item-person');
+            
+            const itemName = nameInput.value.trim();
+            const personName = personInput.value.trim();
+            
+            if (!itemName || !personName) {
+                notify(t('enterName'));
+                return;
+            }
+            
+            if (!currentEvent.customItems) currentEvent.customItems = [];
+            
+            currentEvent.customItems.push({
+                id: generateId(),
+                name: itemName,
+                allowMultiple: false,
+                isGeneric: false,
+                isCustom: true,
+                claimants: [{ name: personName, detail: null }]
+            });
+            
+            nameInput.value = '';
+            personInput.value = '';
+            
+            saveEvent(currentEvent);
+            renderEventItems();
+            notify(t('itemAdded'), 'success');
+        }
+
+        // ===================
+        // HOST VIEW
+        // ===================
+        function loadHostView(event) {
+            currentEvent = event;
+            
+            document.getElementById('host-event-name').textContent = event.name;
+            document.getElementById('host-event-date').textContent = formatDate(event.date);
+            document.getElementById('host-event-time').textContent = formatTime(event.time);
+            
+            // Show place with optional pin link
+            const placeEl = document.getElementById('host-event-place');
+            if (event.pin) {
+                placeEl.innerHTML = `<a href="${escapeHtml(event.pin)}" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">${escapeHtml(event.place)} 📍</a>`;
+            } else {
+                placeEl.textContent = event.place;
+            }
+            
+            // Fill edit form
+            document.getElementById('host-edit-name').value = event.name;
+            document.getElementById('host-edit-date').value = event.date;
+            document.getElementById('host-edit-time').value = event.time;
+            document.getElementById('host-edit-place').value = event.place;
+            document.getElementById('host-edit-pin').value = event.pin || '';
+            document.getElementById('host-edit-description').value = event.description || '';
+            
+            // Set share links
+            const baseUrl = window.location.origin + window.location.pathname;
+            document.getElementById('guest-link').value = `${baseUrl}?event=${event.id}`;
+            document.getElementById('host-link').value = `${baseUrl}?event=${event.id}&host=${event.hostKey}`;
+            
+            renderHostItems();
+            showView('host-view');
+        }
+
+        function renderHostItems() {
+            const container = document.getElementById('host-items-list');
+            const allItems = [...currentEvent.items, ...(currentEvent.customItems || [])];
+            
+            // Empty state
+            if (allItems.length === 0) {
+                container.innerHTML = `<div class="empty-state">${t('noItemsYet')}</div>`;
+                return;
+            }
+            
+            // Calculate progress
+            const claimedCount = allItems.filter(item => item.claimants && item.claimants.length > 0).length;
+            const totalCount = allItems.length;
+            
+            // Sort: unclaimed first, then claimed
+            const sortedItems = [...allItems].sort((a, b) => {
+                const aHasClaims = a.claimants && a.claimants.length > 0;
+                const bHasClaims = b.claimants && b.claimants.length > 0;
+                if (aHasClaims === bHasClaims) return 0;
+                return aHasClaims ? 1 : -1;
+            });
+            
+            const progressHtml = `
+                <div class="progress-summary">
+                    <span class="progress-text">${claimedCount} ${t('of')} ${totalCount} ${t('itemsClaimed')}</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${(claimedCount / totalCount) * 100}%"></div>
+                    </div>
+                </div>
+            `;
+            
+            const itemsHtml = sortedItems.map(item => {
+                const hasClaims = item.claimants && item.claimants.length > 0;
+                
+                return `
+                    <div class="event-item ${hasClaims ? 'claimed' : ''}">
+                        <div class="event-item-header">
+                            <div>
+                                <span class="event-item-name">${escapeHtml(item.name)}</span>
+                                ${item.isCustom ? '<span class="badge badge-generic" style="margin-left: 0.5rem;">+</span>' : ''}
+                            </div>
+                            <button class="btn btn-danger btn-small" onclick="hostRemoveItem('${item.id}', ${item.isCustom || false})">${t('removeItem')}</button>
+                        </div>
+                        
+                        ${hasClaims ? `
+                            <div class="event-item-claimants">
+                                ${item.claimants.map(c => `
+                                    <span class="claimant">
+                                        <span class="claimant-avatar">${c.name.charAt(0).toUpperCase()}</span>
+                                        <span>${escapeHtml(c.name)}${c.notes ? ` — ${escapeHtml(c.notes)}` : ''}</span>
+                                        <button class="claimant-remove" onclick="hostRemoveClaimant('${item.id}', '${escapeHtml(c.name)}', ${item.isCustom || false})" title="${t('unclaim')}">×</button>
+                                    </span>
+                                `).join('')}
+                            </div>
+                        ` : '<p style="color: var(--brown-light); font-style: italic; margin-top: 0.5rem;">—</p>'}
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = progressHtml + itemsHtml;
+        }
+
+        function saveEventEdits() {
+            currentEvent.name = document.getElementById('host-edit-name').value.trim();
+            currentEvent.date = document.getElementById('host-edit-date').value;
+            currentEvent.time = document.getElementById('host-edit-time').value;
+            currentEvent.place = document.getElementById('host-edit-place').value.trim();
+            currentEvent.pin = document.getElementById('host-edit-pin').value.trim();
+            currentEvent.description = document.getElementById('host-edit-description').value.trim();
+            
+            saveEvent(currentEvent);
+            
+            // Update header display
+            document.getElementById('host-event-name').textContent = currentEvent.name;
+            document.getElementById('host-event-date').textContent = formatDate(currentEvent.date);
+            document.getElementById('host-event-time').textContent = formatTime(currentEvent.time);
+            
+            const placeEl = document.getElementById('host-event-place');
+            if (currentEvent.pin) {
+                placeEl.innerHTML = `<a href="${escapeHtml(currentEvent.pin)}" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">${escapeHtml(currentEvent.place)} 📍</a>`;
+            } else {
+                placeEl.textContent = currentEvent.place;
+            }
+            
+            notify(t('changesSaved'), 'success');
+        }
+
+        function hostAddItem() {
+            const nameInput = document.getElementById('host-new-item-name');
+            
+            const name = nameInput.value.trim();
+            if (!name) return;
+            
+            currentEvent.items.push({
+                id: generateId(),
+                name: name,
+                claimants: []
+            });
+            
+            nameInput.value = '';
+            
+            saveEvent(currentEvent);
+            renderHostItems();
+            notify(t('itemAdded'), 'success');
+        }
+
+        function hostRemoveItem(itemId, isCustom) {
+            if (!confirm(t('confirmDeleteItem'))) return;
+            
+            if (isCustom) {
+                currentEvent.customItems = currentEvent.customItems.filter(i => i.id !== itemId);
+            } else {
+                currentEvent.items = currentEvent.items.filter(i => i.id !== itemId);
+            }
+            saveEvent(currentEvent);
+            renderHostItems();
+            notify(t('itemRemoved'));
+        }
+
+        function hostRemoveClaimant(itemId, claimantName, isCustom) {
+            if (!confirm(t('confirmRemoveClaimant'))) return;
+            
+            const items = isCustom ? currentEvent.customItems : currentEvent.items;
+            const item = items.find(i => i.id === itemId);
+            
+            if (item && item.claimants) {
+                item.claimants = item.claimants.filter(c => c.name !== claimantName);
+                saveEvent(currentEvent);
+                renderHostItems();
+                notify(t('unclaimed'));
+            }
+        }
+
+        // ===================
+        // UTILITIES
+        // ===================
+        function generateId() {
+            return Math.random().toString(36).substring(2, 10);
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString(currentLang === 'es' ? 'es-PR' : 'en-US', options);
+        }
+
+        function formatTime(timeStr) {
+            const [hours, minutes] = timeStr.split(':');
+            const date = new Date();
+            date.setHours(parseInt(hours), parseInt(minutes));
+            return date.toLocaleTimeString(currentLang === 'es' ? 'es-PR' : 'en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+        }
+
+        function copyLink(inputId) {
+            const input = document.getElementById(inputId);
+            input.select();
+            document.execCommand('copy');
+            notify(t('copied'), 'success');
+        }
+
+        function exportList() {
+            if (!currentEvent) return;
+            
+            const allItems = [...currentEvent.items, ...(currentEvent.customItems || [])];
+            
+            let text = `${t('exportTitle')}: ${currentEvent.name}\n`;
+            text += `${'='.repeat(40)}\n\n`;
+            text += `📅 ${formatDate(currentEvent.date)}\n`;
+            text += `🕐 ${formatTime(currentEvent.time)}\n`;
+            text += `📍 ${currentEvent.place}\n`;
+            if (currentEvent.description) {
+                text += `\n${currentEvent.description}\n`;
+            }
+            text += `\n${'='.repeat(40)}\n\n`;
+            
+            allItems.forEach(item => {
+                const hasClaims = item.claimants && item.claimants.length > 0;
+                
+                if (hasClaims) {
+                    item.claimants.forEach(c => {
+                        text += `✅ ${item.name}\n`;
+                        text += `   → ${c.name}${c.notes ? ` (${c.notes})` : ''}\n\n`;
+                    });
+                } else {
+                    text += `⬜ ${item.name}\n`;
+                    text += `   → ${t('unclaimed')}\n\n`;
+                }
+            });
+            
+            // Create and download file
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sorullo-${currentEvent.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            notify(t('copied'), 'success');
+        }
+
+        function notify(message, type = '') {
+            const container = document.getElementById('notifications');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(20px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // ===================
+        // URL ROUTING
+        // ===================
+        function handleRoute() {
+            const params = new URLSearchParams(window.location.search);
+            const eventId = params.get('event');
+            const hostKey = params.get('host');
+            
+            if (eventId) {
+                const event = loadEvent(eventId);
+                if (event) {
+                    if (hostKey && hostKey === event.hostKey) {
+                        loadHostView(event);
+                    } else {
+                        loadEventView(event);
+                    }
+                    return;
+                }
+            }
+            
+            showView('home-view');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            handleRoute();
+            updateTranslations();
+        });
+
+        // Handle browser back/forward
+        window.addEventListener('popstate', handleRoute);
+    </script>
+</body>
+</html>
