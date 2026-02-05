@@ -1036,6 +1036,7 @@
                 of: "de",
                 exportList: "Descargar lista",
                 exportTitle: "Lista de SORULLO",
+                listDownloaded: "¡Lista descargada!",
                 unclaimed: "Sin reclamar"
             },
             en: {
@@ -1089,6 +1090,7 @@
                 of: "of",
                 exportList: "Download list",
                 exportTitle: "SORULLO List",
+                listDownloaded: "List downloaded!",
                 unclaimed: "Unclaimed"
             }
         };
@@ -1600,9 +1602,20 @@
 
         function copyLink(inputId) {
             const input = document.getElementById(inputId);
-            input.select();
-            document.execCommand('copy');
-            notify(t('copied'), 'success');
+            const text = input.value;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    notify(t('copied'), 'success');
+                }).catch(() => {
+                    input.select();
+                    document.execCommand('copy');
+                    notify(t('copied'), 'success');
+                });
+            } else {
+                input.select();
+                document.execCommand('copy');
+                notify(t('copied'), 'success');
+            }
         }
 
         function exportList() {
@@ -1645,7 +1658,7 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            notify(t('copied'), 'success');
+            notify(t('listDownloaded'), 'success');
         }
 
         function notify(message, type = '') {
@@ -1689,6 +1702,17 @@
         document.addEventListener('DOMContentLoaded', () => {
             handleRoute();
             updateTranslations();
+
+            // Enter key support for item input fields
+            document.getElementById('new-item-name').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); addItem(); }
+            });
+            document.getElementById('host-new-item-name').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); hostAddItem(); }
+            });
+            document.getElementById('custom-item-person').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); addCustomItem(); }
+            });
         });
 
         // Handle browser back/forward
