@@ -1427,10 +1427,8 @@
             document.getElementById('host-edit-description').value = event.description || '';
             
             // Set share links
-            const baseUrl = window.location.origin + window.location.pathname;
-            document.getElementById('guest-link').value = `${baseUrl}?event=${event.id}`;
-            document.getElementById('host-link').value = `${baseUrl}?event=${event.id}&host=${event.hostKey}`;
-            
+            refreshShareLinks();
+
             renderHostItems();
             showView('host-view');
         }
@@ -1518,7 +1516,10 @@
             } else {
                 placeEl.textContent = currentEvent.place;
             }
-            
+
+            // Regenerate share links with updated data
+            refreshShareLinks();
+
             notify(t('changesSaved'), 'success');
         }
 
@@ -1538,12 +1539,13 @@
             
             saveEvent(currentEvent);
             renderHostItems();
+            refreshShareLinks();
             notify(t('itemAdded'), 'success');
         }
 
         function hostRemoveItem(itemId, isCustom) {
             if (!confirm(t('confirmDeleteItem'))) return;
-            
+
             if (isCustom) {
                 currentEvent.customItems = currentEvent.customItems.filter(i => i.id !== itemId);
             } else {
@@ -1551,19 +1553,21 @@
             }
             saveEvent(currentEvent);
             renderHostItems();
+            refreshShareLinks();
             notify(t('itemRemoved'));
         }
 
         function hostRemoveClaimant(itemId, claimantName, isCustom) {
             if (!confirm(t('confirmRemoveClaimant'))) return;
-            
+
             const items = isCustom ? currentEvent.customItems : currentEvent.items;
             const item = items.find(i => i.id === itemId);
-            
+
             if (item && item.claimants) {
                 item.claimants = item.claimants.filter(c => c.name !== claimantName);
                 saveEvent(currentEvent);
                 renderHostItems();
+                refreshShareLinks();
                 notify(t('unclaimed'));
             }
         }
@@ -1573,6 +1577,31 @@
         // ===================
         function generateId() {
             return Math.random().toString(36).substring(2, 10);
+        }
+
+        function refreshShareLinks() {
+            if (!currentEvent) return;
+            const baseUrl = window.location.origin + window.location.pathname;
+            const guestData = encodeEventForUrl(currentEvent, false);
+            const hostData = encodeEventForUrl(currentEvent, true);
+            document.getElementById('guest-link').value = `${baseUrl}?event=${currentEvent.id}&d=${guestData}`;
+            document.getElementById('host-link').value = `${baseUrl}?event=${currentEvent.id}&host=${currentEvent.hostKey}&d=${hostData}`;
+        }
+
+        function encodeEventForUrl(event, includeHostKey) {
+            const data = { ...event };
+            if (!includeHostKey) delete data.hostKey;
+            const json = JSON.stringify(data);
+            return btoa(unescape(encodeURIComponent(json)));
+        }
+
+        function decodeEventFromUrl(encoded) {
+            try {
+                const json = decodeURIComponent(escape(atob(encoded)));
+                return JSON.parse(json);
+            } catch (e) {
+                return null;
+            }
         }
 
         function escapeHtml(str) {
@@ -1600,9 +1629,20 @@
 
         function copyLink(inputId) {
             const input = document.getElementById(inputId);
-            input.select();
-            document.execCommand('copy');
-            notify(t('copied'), 'success');
+            const text = input.value;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    notify(t('copied'), 'success');
+                }).catch(() => {
+                    input.select();
+                    document.execCommand('copy');
+                    notify(t('copied'), 'success');
+                });
+            } else {
+                input.select();
+                document.execCommand('copy');
+                notify(t('copied'), 'success');
+            }
         }
 
         function exportList() {
@@ -1669,9 +1709,20 @@
             const params = new URLSearchParams(window.location.search);
             const eventId = params.get('event');
             const hostKey = params.get('host');
-            
+            const encodedData = params.get('d');
+
             if (eventId) {
-                const event = loadEvent(eventId);
+                let event = loadEvent(eventId);
+
+                // If event not in localStorage, try decoding from URL
+                if (!event && encodedData) {
+                    event = decodeEventFromUrl(encodedData);
+                    if (event) {
+                        event.id = eventId;
+                        saveEvent(event);
+                    }
+                }
+
                 if (event) {
                     if (hostKey && hostKey === event.hostKey) {
                         loadHostView(event);
@@ -1681,7 +1732,7 @@
                     return;
                 }
             }
-            
+
             showView('home-view');
         }
 
