@@ -1175,7 +1175,7 @@
             if (!name) return;
 
             items.push({
-                id: Math.random().toString(36).substring(2, 10),
+                id: crypto.randomUUID(),
                 name: name,
                 claimants: []
             });
@@ -1253,8 +1253,8 @@
 
             // Show place with optional pin link
             const placeEl = document.getElementById('view-event-place');
-            if (event.pin) {
-                placeEl.innerHTML = `<a href="${escapeHtml(event.pin)}" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">${escapeHtml(event.place)} 📍</a>`;
+            if (event.pin && isSafeUrl(event.pin)) {
+                placeEl.innerHTML = `<a href="${escapeHtml(event.pin)}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">${escapeHtml(event.place)} 📍</a>`;
             } else {
                 placeEl.textContent = event.place;
             }
@@ -1315,7 +1315,7 @@
                                     <span class="claimant">
                                         <span class="claimant-avatar">${c.name.charAt(0).toUpperCase()}</span>
                                         <span>${escapeHtml(c.name)}${c.notes ? ` — ${escapeHtml(c.notes)}` : ''}</span>
-                                        <button class="claimant-remove" onclick="unclaimItem('${item.id}', '${escapeHtml(c.name)}')" title="${t('unclaim')}">×</button>
+                                        <button class="claimant-remove" data-item-id="${item.id}" data-name="${escapeHtml(c.name)}" data-is-custom="${!!item.isCustom}" title="${t('unclaim')}">×</button>
                                     </span>
                                 `).join('')}
                             </div>
@@ -1411,8 +1411,8 @@
 
             // Show place with optional pin link
             const placeEl = document.getElementById('host-event-place');
-            if (event.pin) {
-                placeEl.innerHTML = `<a href="${escapeHtml(event.pin)}" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">${escapeHtml(event.place)} 📍</a>`;
+            if (event.pin && isSafeUrl(event.pin)) {
+                placeEl.innerHTML = `<a href="${escapeHtml(event.pin)}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">${escapeHtml(event.place)} 📍</a>`;
             } else {
                 placeEl.textContent = event.place;
             }
@@ -1482,7 +1482,7 @@
                                     <span class="claimant">
                                         <span class="claimant-avatar">${c.name.charAt(0).toUpperCase()}</span>
                                         <span>${escapeHtml(c.name)}${c.notes ? ` — ${escapeHtml(c.notes)}` : ''}</span>
-                                        <button class="claimant-remove" onclick="hostRemoveClaimant('${item.id}', '${escapeHtml(c.name)}', ${item.isCustom || false})" title="${t('unclaim')}">×</button>
+                                        <button class="claimant-remove" data-item-id="${item.id}" data-name="${escapeHtml(c.name)}" data-is-custom="${item.isCustom || false}" title="${t('unclaim')}">×</button>
                                     </span>
                                 `).join('')}
                             </div>
@@ -1515,8 +1515,8 @@
                 document.getElementById('host-event-time').textContent = formatTime(event.time);
 
                 const placeEl = document.getElementById('host-event-place');
-                if (event.pin) {
-                    placeEl.innerHTML = `<a href="${escapeHtml(event.pin)}" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">${escapeHtml(event.place)} 📍</a>`;
+                if (event.pin && isSafeUrl(event.pin)) {
+                    placeEl.innerHTML = `<a href="${escapeHtml(event.pin)}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">${escapeHtml(event.place)} 📍</a>`;
                 } else {
                     placeEl.textContent = event.place;
                 }
@@ -1590,6 +1590,15 @@
             const div = document.createElement('div');
             div.textContent = str;
             return div.innerHTML;
+        }
+
+        function isSafeUrl(url) {
+            try {
+                const { protocol } = new URL(url);
+                return protocol === 'http:' || protocol === 'https:';
+            } catch {
+                return false;
+            }
         }
 
         function formatDate(dateStr) {
@@ -1718,6 +1727,19 @@
         document.addEventListener('DOMContentLoaded', () => {
             handleRoute();
             updateTranslations();
+
+            // Event delegation for claimant-remove buttons (avoids embedding user data in onclick strings)
+            document.getElementById('event-items-list').addEventListener('click', e => {
+                const btn = e.target.closest('.claimant-remove');
+                if (!btn) return;
+                unclaimItem(btn.dataset.itemId, btn.dataset.name);
+            });
+
+            document.getElementById('host-items-list').addEventListener('click', e => {
+                const btn = e.target.closest('.claimant-remove');
+                if (!btn) return;
+                hostRemoveClaimant(btn.dataset.itemId, btn.dataset.name, btn.dataset.isCustom === 'true');
+            });
         });
 
         // Handle browser back/forward
